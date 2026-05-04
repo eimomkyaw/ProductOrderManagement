@@ -1,0 +1,92 @@
+/* Bootstrap Override - Professional Color Scheme (No Blue) */
+
+:root {
+  /* Professional color scheme (no blue) */
+  --bs-primary: #2d3748;
+  --bs-primary-rgb: 45, 55, 72;
+  --bs-primary-hover: #4a5568;
+  --bs-primary-light: #edf2f7;
+  --bs-secondary: #718096;
+  --bs-secondary-hover: #4a5568;
+  --bs-success: #38a169;
+  --bs-warning: #dd6b20;
+  --bs-danger: #e53e3e;
+  --bs-info: #805ad5;
+}
+
+/* Override Bootstrap primary colors */
+.btn-primary {
+  background-color: #2d3748 !important;
+  border-color: #2d3748 !important;
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #4a5568 !important;
+  border-color: #4a5568 !important;
+}
+.btn-outline-primary {
+  color: #2d3748 !important;
+  border-color: #2d3748 !important;
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-color: #2d3748 !important;
+  border-color: #2d3748 !important;
+}
+
+.text-primary {
+  color: #2d3748 !important;
+}
+
+.bg-primary {
+  background-color: #2d3748 !important;
+}
+
+.card-header.bg-primary {
+  background-color: #2d3748 !important;
+  border-bottom: 1px solid #4a5568 !important;
+}
+
+/* Override all Bootstrap color classes */
+.alert-primary {
+  background-color: rgba(45, 55, 72, 0.1) !important;
+  border-color: #2d3748 !important;
+  color: #2d3748 !important;
+}
+
+.badge.bg-primary {
+  background-color: #2d3748 !important;
+}
+
+.navbar.bg-primary {
+  background-color: #2d3748 !important;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #2d3748 !important;
+  border-color: #2d3748 !important;
+}
+
+.pagination .page-link {
+  color: #2d3748 !important;
+}
+
+.pagination .page-link:hover {
+  color: #4a5568 !important;
+}
+
+/* Override Bootstrap variables */
+.btn-primary {
+  --bs-btn-bg: #2d3748 !important;
+  --bs-btn-border-color: #2d3748 !important;
+  --bs-btn-hover-bg: #4a5568 !important;
+  --bs-btn-hover-border-color: #4a5568 !important;
+}
+
+.text-primary {
+  --bs-primary-text-emphasis: #2d3748 !important;
+}
+
+.bg-primary {
+  --bs-primary-bg-subtle: #2d3748 !important;
+}
