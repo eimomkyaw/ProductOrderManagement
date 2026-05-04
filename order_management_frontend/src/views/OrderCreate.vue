@@ -16,8 +16,8 @@
         <LoadingSpinner v-if="productsStore.isLoading" text="Loading products..." />
         
         <!-- Error State -->
-        <div v-else-if="productsStore.error" class="alert alert-danger" role="alert">
-          <strong>Error:</strong> {{ productsStore.error }}
+        <div v-else-if="productsStore.error && productsStore.products.length === 0" class="alert alert-warning" role="alert">
+          <strong>Unable to load products:</strong> {{ productsStore.error }}
           <button @click="productsStore.clearError" class="btn btn-sm btn-outline-danger ms-2">Dismiss</button>
         </div>
         
@@ -30,13 +30,16 @@
                 <p v-if="product.description" class="card-text text-muted flex-grow-1">{{ product.description }}</p>
                 <div class="mt-auto">
                   <h4 class="text-primary">${{ parseFloat(product.price || 0).toFixed(2) }}</h4>
+                  <p class="mb-2 small" :class="getStockCount(product) > 0 ? 'text-muted' : 'text-danger'">
+                    Stock: {{ getStockCount(product) }}
+                  </p>
                   <div class="d-flex gap-2">
                     <button 
                       @click="productsStore.addToCart(product)" 
                       class="btn btn-primary flex-grow-1"
-                      :disabled="isInCart(product.id)"
+                      :disabled="isInCart(product.id) || getStockCount(product) <= 0"
                     >
-                      {{ isInCart(product.id) ? 'In Cart' : 'Add to Cart' }}
+                      {{ getProductButtonText(product) }}
                     </button>
                     <button 
                       v-if="isInCart(product.id)"
@@ -93,6 +96,19 @@
             </div>
             
             <div class="card-body">
+              <div v-if="productsStore.orderError" class="cart-alert mb-3">
+                <div>
+                  <strong>Stock limit reached</strong>
+                  <p class="mb-0">{{ productsStore.orderError }}</p>
+                </div>
+                <button
+                  type="button"
+                  class="btn-close"
+                  aria-label="Dismiss"
+                  @click="productsStore.clearOrderError"
+                ></button>
+              </div>
+
               <!-- Empty Cart -->
               <div v-if="productsStore.cart.length === 0" class="text-center py-4">
                 <i class="bi bi-cart-x display-4 text-muted"></i>
@@ -110,15 +126,16 @@
                         <div class="d-flex align-items-center gap-2">
                           <button 
                             @click="decreaseQuantity(item.product_id)"
-                            class="btn btn-sm btn-outline-secondary"
+                            class="quantity-btn"
                             :disabled="item.quantity <= 1"
                           >
                             -
                           </button>
-                          <span class="fw-bold">{{ item.quantity }}</span>
+                          <span class="quantity-value">{{ item.quantity }}</span>
                           <button 
                             @click="increaseQuantity(item.product_id)"
-                            class="btn btn-sm btn-outline-secondary"
+                            class="quantity-btn"
+                            :disabled="item.stock && item.quantity >= item.stock"
                           >
                             +
                           </button>
@@ -197,6 +214,22 @@ const isInCart = (productId) => {
   return productsStore.cart.some(item => item.product_id === productId);
 };
 
+const getStockCount = (product) => {
+  return Number(product?.stock || 0);
+};
+
+const getProductButtonText = (product) => {
+  if (isInCart(product.id)) {
+    return 'In Cart';
+  }
+
+  if (getStockCount(product) <= 0) {
+    return 'Out of Stock';
+  }
+
+  return 'Add to Cart';
+};
+
 const getProductPrice = (productId) => {
   const item = productsStore.cart.find(item => item.product_id === productId);
   if (item) {
@@ -210,6 +243,12 @@ const getProductPrice = (productId) => {
 const increaseQuantity = (productId) => {
   const item = productsStore.cart.find(item => item.product_id === productId);
   if (item) {
+    if (item.stock && item.quantity >= item.stock) {
+      productsStore.orderError = `Only ${item.stock} item(s) of ${item.name} are available.`;
+      return;
+    }
+
+    productsStore.clearOrderError();
     productsStore.updateQuantity(productId, item.quantity + 1);
   }
 };
@@ -232,10 +271,6 @@ const submitOrder = async () => {
     showNotification.value = true;
     notificationMessage.value = 'Order placed successfully!';
     notificationType.value = 'success';
-  } else {
-    showNotification.value = true;
-    notificationMessage.value = result.error;
-    notificationType.value = 'error';
   }
 };
 
@@ -262,6 +297,43 @@ const closeNotification = () => {
 
 .cart-item:hover {
   background-color: #e9ecef;
+}
+
+.cart-alert {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #f5d28a;
+  border-radius: 6px;
+  color: #664d03;
+  background: #fff8e6;
+}
+
+.cart-alert p {
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.quantity-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #adb5bd;
+  border-radius: 4px;
+  color: #2d3748;
+  background: #fff;
+}
+
+.quantity-btn:disabled {
+  color: #adb5bd;
+  background: #f1f3f5;
+}
+
+.quantity-value {
+  min-width: 28px;
+  text-align: center;
+  font-weight: 700;
+  color: #2d3748;
 }
 
 .sticky-top {

@@ -50,6 +50,12 @@ class OrderController extends Controller
                 'order' => $order,
             ], 201);
 
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
+
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error occurred while placing the order.',

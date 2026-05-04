@@ -7,6 +7,7 @@ export const useProductsStore = defineStore('products', {
     cart: [],
     isLoading: false,
     error: null,
+    orderError: null,
     orderLoading: false,
     pagination: {
       currentPage: 1,
@@ -79,6 +80,7 @@ export const useProductsStore = defineStore('products', {
           product_id: product.id,
           name: product.name,
           price: parseFloat(product.price || 0),
+          stock: Number(product.stock || 0),
           quantity: 1
         })
       }
@@ -109,6 +111,7 @@ export const useProductsStore = defineStore('products', {
       }
 
       this.orderLoading = true
+      this.orderError = null
       this.error = null
 
       try {
@@ -123,8 +126,13 @@ export const useProductsStore = defineStore('products', {
         this.clearCart()
         return { success: true, data: response.data }
       } catch (error) {
-        this.error = error.response?.data?.message || 'Failed to submit order'
-        return { success: false, error: this.error }
+        const data = error.response?.data
+        this.error = null
+        this.orderError = data?.message
+          || data?.error
+          || Object.values(data?.errors || {}).flat().join(' ')
+          || 'Failed to submit order'
+        return { success: false, error: this.orderError }
       } finally {
         this.orderLoading = false
       }
@@ -132,6 +140,10 @@ export const useProductsStore = defineStore('products', {
 
     clearError() {
       this.error = null
+    },
+
+    clearOrderError() {
+      this.orderError = null
     },
 
     async nextPage() {

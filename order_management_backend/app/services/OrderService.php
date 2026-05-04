@@ -10,40 +10,37 @@ class OrderService
 {
     public function createOrder($data, $user)
     {
-        DB::beginTransaction();
+        return DB::transaction(function () use ($data, $user) {
+            $totalPrice = 0;
+            $items = $data['items'];
 
-        $totalPrice = 0;
-        $items = $data['items'];
+            foreach ($items as $item) {
+                $product = Products::find($item['product_id']);
 
-        foreach ($items as $item) {
-            $product = Products::find($item['product_id']);
+                if ($product->stock < $item['quantity']) {
+                    throw new \InvalidArgumentException("Only {$product->stock} item(s) of {$product->name} are available.");
+                }
 
-            if ($product->stock < $item['quantity']) {
-                return response()->json(['message' => "Product {$product->name} is not enough stock"], 400);
+                $totalPrice += $product->price * $item['quantity'];
             }
 
-            $totalPrice += $product->price * $item['quantity'];
-        }
-
-        $order = Orders::create([
-            'user_id' => $user->id,
-            'total_price' => $totalPrice,
-        ]);
-
-        foreach ($items as $item) {
-            $product = Products::find($item['product_id']);
-
-            $order->items()->attach($product->id, [
-                'quantity' => $item['quantity'],
-                'price' => $product->price,
+            $order = Orders::create([
+                'user_id' => $user->id,
+                'total_price' => $totalPrice,
             ]);
 
-            $product->decrement('stock', $item['quantity']);
-        }
+            foreach ($items as $item) {
+                $product = Products::find($item['product_id']);
 
-        DB::commit();
+                $order->items()->attach($product->id, [
+                    'quantity' => $item['quantity'],
+                    'price' => $product->price,
+                ]);
 
-        return $order->load('items');
+                $product->decrement('stock', $item['quantity']);
+            }
 
+            return $order->load('items');
+        });
     }
 }
