@@ -20,8 +20,7 @@ export const useProductsStore = defineStore('products', {
   getters: {
     cartTotal: (state) => {
       return state.cart.reduce((total, item) => {
-        const product = state.products.find(p => p.id === item.product_id)
-        return total + (product ? product.price * item.quantity : 0)
+        return total + (parseFloat(item.price || 0) * item.quantity)
       }, 0)
     },
 
@@ -79,6 +78,7 @@ export const useProductsStore = defineStore('products', {
         this.cart.push({
           product_id: product.id,
           name: product.name,
+          price: parseFloat(product.price || 0),
           quantity: 1
         })
       }
@@ -112,7 +112,12 @@ export const useProductsStore = defineStore('products', {
       this.error = null
 
       try {
-        const payload = { items: this.cart }
+        const payload = {
+          items: this.cart.map(item => ({
+            product_id: item.product_id,
+            quantity: item.quantity
+          }))
+        }
         const response = await axios.post('/auth/orders', payload)
         
         this.clearCart()

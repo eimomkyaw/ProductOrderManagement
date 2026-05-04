@@ -198,8 +198,13 @@ const isInCart = (productId) => {
 };
 
 const getProductPrice = (productId) => {
+  const item = productsStore.cart.find(item => item.product_id === productId);
+  if (item) {
+    return parseFloat(item.price || 0);
+  }
+
   const product = productsStore.getProductById(productId);
-  return product ? product.price : 0;
+  return product ? parseFloat(product.price || 0) : 0;
 };
 
 const increaseQuantity = (productId) => {
